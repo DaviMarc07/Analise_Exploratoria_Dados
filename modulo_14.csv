@@ -1,0 +1,52 @@
+import pandas as pd
+import numpy as np
+
+# Nome do arquivo original (Certifique-se que ele está na mesma pasta)
+file_name = "CHURN_TELECON_MOD08_TAREFA.csv"
+delimiter = ';'
+
+# ----------------------------------------------------
+# 1. CARREGAMENTO E PRÉ-PROCESSAMENTO (Módulo 14)
+# ----------------------------------------------------
+
+# Carregar os dados
+df = pd.read_csv(file_name, delimiter=delimiter)
+
+# 1.1 Padronização dos nomes das colunas (snake_case e minúsculas)
+df.columns = df.columns.str.lower().str.replace(' ', '_').str.replace('ã', 'a').str.replace('ç', 'c').str.replace('ó', 'o').str.replace('í', 'i')
+
+# 1.2 Tratamento de Nulos e Conversão de Tipos (Numéricos)
+df['pagamento_mensal'] = pd.to_numeric(df['pagamento_mensal'], errors='coerce')
+df['total_pago'] = pd.to_numeric(df['total_pago'], errors='coerce')
+
+# Imputação de nulos numéricos com a Mediana
+mediana_pagamento_mensal = df['pagamento_mensal'].median()
+mediana_total_pago = df['total_pago'].median()
+df['pagamento_mensal'].fillna(mediana_pagamento_mensal, inplace=True)
+df['total_pago'].fillna(mediana_total_pago, inplace=True)
+
+# 1.3 Tratamento de Nulos (Categóricos)
+# Imputação de nulos categóricos com a Moda
+moda_genero = df['genero'].mode()[0]
+df['genero'].fillna(moda_genero, inplace=True)
+
+# 1.4 Padronização de valores categóricos (lowercase, strip)
+for col in df.select_dtypes(include=['object']).columns:
+    df[col] = df[col].str.strip().str.lower()
+    
+# ----------------------------------------------------
+# 2. SALVAR O DATAFRAME LIMPO
+# ----------------------------------------------------
+
+# Definindo o nome do novo arquivo
+new_file_name = "churn_telecon_limpo.csv"
+
+# Salvando o DataFrame como CSV. Usamos index=False para não salvar o índice do pandas
+# e sep=',' (vírgula) que é o padrão universal para CSV.
+df.to_csv(new_file_name, index=False, sep=',')
+
+print(f"O pré-processamento foi concluído e a base limpa foi salva em: {new_file_name}")
+
+# Exibindo as primeiras linhas do novo DataFrame para confirmação
+print("\nAmostra da base salva:")
+print(df.head().to_markdown(index=False))
